@@ -66,10 +66,16 @@ describe('Code snippet from cells tests', () => {
   });
 
   it('test 2 cells', () => {
-    // Create new cells
-    cy.get(
-      '.jp-NotebookPanel-toolbar > div:nth-child(2) > jp-button:nth-child(1)'
-    ).click();
+    // Create a new cell and wait for it to mount before populating.
+    // populateCells snapshots cy.get('.jp-Cell') once; without this wait
+    // the second cell may not exist yet, leaving it empty so save-as-snippet
+    // renders disabled and the .elyra-metadataEditor wait times out.
+    cy.get('.jp-Cell').then(($before) => {
+      cy.get(
+        '.jp-NotebookPanel-toolbar > div:nth-child(2) > jp-button:nth-child(1)'
+      ).click();
+      cy.get('.jp-Cell').should('have.length.greaterThan', $before.length);
+    });
 
     waitForKernelIdle();
 
